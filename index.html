@@ -2,7 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#10303C">
 <title>Territórios de (R)Existência — Qualificação</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
@@ -40,6 +41,19 @@
 
 * { box-sizing: border-box; }
 
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Reveal.js já escala o deck (largura/altura lógicas fixas) para caber em
+   qualquer viewport mantendo a proporção — é assim que a apresentação se
+   adapta a celular, tablet e desktop sem quebrar o layout de cada slide. */
 .reveal {
   font-family: var(--body-font);
   background-color: var(--background-color);
@@ -194,6 +208,60 @@
 
 .reveal .progress { color: var(--secondary-color); }
 .reveal .controls { color: var(--primary-color); }
+
+/* =========================================
+   RESPONSIVIDADE — TODOS OS DISPOSITIVOS
+   Reveal.js já escala o slide (1280x720) inteiro proporcionalmente
+   para caber em qualquer tela; os ajustes abaixo cobrem o que a
+   escala automática não resolve sozinha: notch/safe-area do iOS,
+   bounce/scroll da página, navegação por toque e um limite de
+   segurança para a tabela mais larga do cronograma.
+========================================= */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  background-color: var(--dark-bg);
+}
+
+.reveal-viewport {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Tabelas largas (ex.: cronograma) nunca cortam conteúdo — viram scroll horizontal se precisar */
+.table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Rede de segurança: nenhuma imagem "solta" (sem width definido) pode estourar
+   a coluna/slide em que está. Seletores mais específicos (diagram-stage, zoom-lens,
+   #ondas/#barco, width inline) continuam vencendo por especificidade normal do CSS. */
+.reveal .slides section img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Em telas sem mouse (celular/tablet), mostra as setas de navegação mesmo com controls:false,
+   já que o gesto de arrastar nem sempre é óbvio para quem assiste no telefone. */
+@media (hover: none), (pointer: coarse) {
+  .reveal.no-controls .controls {
+    display: block !important;
+  }
+  .reveal .controls {
+    bottom: 10px;
+    right: 10px;
+  }
+  .reveal .controls .navigate-left,
+  .reveal .controls .navigate-right,
+  .reveal .controls .navigate-up,
+  .reveal .controls .navigate-down {
+    width: 40px;
+    height: 40px;
+  }
+}
 
 /* =========================================
    NOVOS COMPONENTES — DIVERSIFICAÇÃO DE LAYOUT
@@ -529,7 +597,9 @@
 </head>
 <body>
 <div class="reveal">
-  <!-- Elementos de Fundo Animado -->
+
+<div class="slides">
+  <!-- Elementos de Fundo Animado: ficam DENTRO de .slides para escalar junto com os slides em qualquer tela -->
   <div id="cenario-animado">
     <div id="ondas-container">
       <img src="1.png" id="ondas-1" alt="Ondas">
@@ -540,8 +610,6 @@
     </div>
   </div>
 
-
-<div class="slides">
 
 <!-- 1. TITLE -->
 <section id="title" class="title-slide dark-slide" data-background-color="#10303C">
@@ -627,7 +695,7 @@
       <div class="timeline-node verde">
         <div class="dot">2</div>
         <h4>Não neutralidade dos mapas</h4>
-        <p>ESCREVA ALGO</p>
+        <p class="stat">A cartografia é uma poderosa ferramenta de comunicação e com ela selecionamos o que será ou não apresentado/representado</p>
       </div>
       <div class="timeline-node">
         <div class="dot">3</div>
@@ -637,7 +705,7 @@
       <div class="timeline-node verde">
         <div class="dot">4</div>
         <h4>Dependência burocrática</h4>
-        <p>Comunidades ainda dependem de agentes externos para a construção de mapas digitalizados com garantia jurídica.</p>
+        <p class="stat">Comunidades ainda dependem de agentes externos para a construção de mapas digitalizados com garantia jurídica.</p>
       </div>
       <div class="timeline-node azul">
         <div class="dot">5</div>
@@ -655,8 +723,8 @@
   <div class="content" style="justify-content:center;">
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:28px; align-items:center;">
       <div class="card">
-        <h3><i class="fa-solid fa-people-group"></i> Pesquisa Participativa</h3>
-        <p>Pesquisa social de base empírica, realizada em estreita associação com a resolução de um problema coletivo, com pesquisadores e participantes envolvidos cooperativamente (Thiollent, 2011).</p>
+        <h3><i class="fa-solid fa-people-group"></i> Pesquisa Participativa <strong> (Thiollent, 2011).</strong></h3>
+        <p>Pesquisa, realizada em estreita associação com a resolução de um problema coletivo, com pesquisadores e participantes envolvidos cooperativamente .</p>
       </div>
       <div class="card terra">
         <h3><i class="fa-solid fa-user-check"></i> Papel do pesquisador</h3>
@@ -673,10 +741,10 @@
   <hr class="rule">
   <div class="content">
     <ul>
-      <li>Encontros entre pesquisadores e membros das comunidades para apresentar o ambiente digital do WebSIG REAT CARTO.</li>
+      <li>Encontros entre pesquisadores e membros das comunidades para apresentar o REAT CARTO.</li>
       <li>Não se restringem a treinamento técnico: são espaços de <strong>construção conjunta</strong>.</li>
       <li>Participantes têm contato guiado com o sistema — inserir, manipular e visualizar dados espaciais dos territórios.</li>
-      <li>Papel metodológico central: observar as interações iniciais dos sujeitos com a tecnologia, base para as entrevistas posteriores.</li>
+      <li>Papel metodológico central: observar as interações iniciais dos sujeitos com a tecnologia, base para as entrevistas posteriores, além de disponibilizar a ferramenta para uso continuo.</li>
     </ul>
   </div>
 </section>
@@ -699,7 +767,7 @@
         </ul>
       </div>
       <div class="card terra">
-        <h3>Questionário (Google Forms)</h3>
+        <h3>Questionário via Google Forms</h3>
         <ul style="font-size:13pt;">
           <li><strong>Eixo 1</strong> — Aplicações visuais e potenciais</li>
           <li><strong>Eixo 2</strong> — Engajamento e características do processo cartográfico</li>
@@ -711,12 +779,12 @@
     <h2>Coleta, Análise e Revisão</h2>
     <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:16px;">
       <div class="card">
-        <h3><i class="fa-solid fa-file-lines"></i> Análise de Conteúdo</h3>
-        <p style="font-size:12.5pt;">Bardin (2016) — tratamento sistemático das transcrições e formulários aplicados.</p>
+        <h3><i class="fa-solid fa-file-lines"></i> Análise de Conteúdo (Bardin 2016)</h3>
+        <p style="font-size:12.5pt;">Tratamento sistemático das transcrições e formulários aplicados.</p>
       </div>
       <div class="card terra">
-        <h3><i class="fa-solid fa-map"></i> Análise Territorial</h3>
-        <p style="font-size:12.5pt;">De Paula (2023) — decifração de <strong>nós, redes e malhas</strong> em amostra de 10 cartografias sociais salvas na plataforma.</p>
+        <h3><i class="fa-solid fa-map"></i> Análise Territorial (De Paula 202x)</h3>
+        <p style="font-size:12.5pt;">Análise dos territórios pesqueiros com decifração das <strong>malhas, redes e nós</strong> com amostra de 10 cartografias sociais salvas na plataforma.</p>
       </div>
       <div class="card verde">
         <h3><i class="fa-solid fa-book-open"></i> Revisão Bibliográfica</h3>
@@ -733,11 +801,73 @@
 
 <!-- 11. DIVIDER: ABORDAGEM TEÓRICA -->
   <section id="divider-teoria" data-transition="zoom">
-    <h2 style="color: #1F4E5F">Abordagem Teórica</h2>
+    <h2 style="color: #1F4E5F">Referencial Teórico</h2>
     <hr class="rule">
     <div  style="margin-top: 18%; margin-left: 10%;"> 
       <h1 style="color: #1F4E5F">Cartografia e contra Cartografia</h1>
     </div>
+  </section>
+
+
+
+
+  <section>
+    <h2 style="color: #1F4E5F">Referencial Teórico</h2>
+    <hr class="rule">
+    <div class="content">
+      <div class="stat">
+        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; text-align: center;">
+  <thead style="background-color: #f2f2f2;">
+    <tr>
+      <th>Contra Cartografia</th>
+      <th>Cartografia Participativa</th>
+      <th>Cartografia Social</th>
+      <th>Cartografia da Ação Social</th>
+      <th>Mapeamento Colaborativo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Silva et al. (2021)</td>
+      <td>Acselrad (2008)</td>
+      <td>Almeida (2004)</td>
+      <td>Silva, Schipper (2012)</td>
+      <td>Souto (2021)</td>
+    </tr>
+    <tr>
+      <td>Acselrad (2008)</td>
+      <td>Sombra (2022)</td>
+      <td>Acselrad (2013)</td>
+      <td>Silva, Ribeiro (2022)</td>
+      <td>Goodchild (2007)</td>
+    </tr>
+    <tr>
+      <td>Silva, Ribeiro (2022)</td>
+      <td>Tavares et al. (2016)</td>
+      <td>Pelegrina (2020)</td>
+      <td>Silva, Ribeiro (2021)</td>
+      <td>Ritzer (2008)</td>
+    </tr>
+    <tr>
+      <td>Rocha (2017)</td>
+      <td>Rocha (2015)</td>
+      <td>Ferreira et al. (2021)</td>
+      <td>-</td>
+      <td>Dodge, Kitchin (2013)</td>
+    </tr>
+    <tr>
+      <td>Bravo, Sluter (2018)</td>
+      <td>Araújo et al. (2017)</td>
+      <td>Santos (2016)</td>
+      <td>-</td>
+      <td>Machado, Camboim (2019)</td>
+    </tr>
+  </tbody>
+</table>
+
+      </div>
+    </div>
+  
   </section>
 
 <!-- 12. CONTRA CARTOGRAFIA - PODER -->
@@ -783,7 +913,7 @@
   <div class="content">
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:26px;">
       <div class="" style="margin-top: -5%;" >
-        <img src="guardachuva.png">
+        <img src="guardachuva.png" style="width:100%; height:auto;">
         <div class="stat" style="margin-top: -5%">
         <h3 style="color: #23303A; text-align: center;"><i class="fa-solid fa-diagram-project"></i> Guarda-chuva metodológico</h3>
         <p style="color: #23303A; text-align: center;">A <strong>Cartografia Participativa</strong> funciona como categoria principal; dela derivam a Cartografia Social, a Cartografia da Ação Social e o Mapeamento Colaborativo.</p>
@@ -900,6 +1030,56 @@
   </div>
 </section>
 
+  <section id="divider-teoria" data-transition="zoom">
+    <h2 style="color: #1F4E5F">Referencial Teórico</h2>
+    <hr class="rule">
+    <div  class="content">
+      <div class="stat" style="margin-left: 30%; width: 33%;">
+      <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 50%; font-family: Arial, sans-serif; text-align: center;">
+        <thead style="background-color: #f2f2f2;">
+          <tr>
+            <th>Reat Carto / WebSIG</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Andrade et al. (2013)</td>
+            
+          </tr>
+          <tr>
+            <td>Gallis et al. (2018)</td>
+           
+          </tr>
+          <tr>
+            <td>Bolfe et al. (2008)</td>
+            
+          </tr>
+          <tr>
+            <td>Albuquerque (2025)</td>
+
+          </tr>
+          <tr>
+            <td>Acselrad (2015)</td>
+
+          </tr>
+          <tr>
+            <td>Silva et al. (2021)</td>
+
+          </tr>
+          <tr>
+            <td>Ribeiro (2021)</td>
+
+          </tr>
+          <tr>
+            <td>Silva, Schipper (2012)</td>
+         
+          </tr>
+        </tbody>
+      </table>
+      </div> 
+    </div>
+  </section>
+
 <!-- 20. REAT CARTO HISTÓRIA -->
 <section id="reatcarto-historia">
 
@@ -990,7 +1170,7 @@
         <li>Privacidade: cada dado pode ser marcado como visível ou não ao público — resposta aos riscos de exposição apontados por Ribeiro.</li>
       </ul>
     </div>
-      <img src="pc.png">
+      <img src="pc.png" style="width:100%; height:auto; align-self:center;">
   </div>
 </section>
 
@@ -1002,6 +1182,37 @@
   </div>
 </section>
 
+<section id="divider-teoria" data-transition="zoom">
+    <h2 style="color: #1F4E5F">Referencial Teórico</h2>
+    <hr class="rule">
+    <div  class="content">
+      <div class="stat" style="margin-top:10%;">
+            
+        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 50%; font-family: Arial, sans-serif; text-align: center;">
+          <thead style="background-color: #f2f2f2;">
+            <tr>
+              <th>Protocolo de Consulta</th>
+              <th>PAE Pesqueiro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Comunidades Tradicionais Pesqueiras da Lagoa dos Patos (2025)</td>
+              <td>Portaria nº 1.498/2025</td>
+            </tr>
+            <tr>
+              <td>OIT 169 (Convenção)</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td>Decreto nº 6.040/2007</td>
+              <td>-</td>
+            </tr>
+          </tbody>
+        </table>
+      </div> 
+    </div>
+  </section>
 
 <!-- 25. POLÍTICAS PÚBLICAS - PROTOCOLO -->
 <section id="politicas-protocolo-consulta">
@@ -1101,6 +1312,38 @@
     <h1>Território e Territorialidade (Pesqueira)</h1>
   </div>
 </section>
+
+ <section>
+    <h2 style="color: #1F4E5F">Referencial Teórico</h2>
+    <hr class="rule">
+    <div class="content">
+      <div class="stat">
+        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; text-align: center;">
+  <thead style="background-color: #f2f2f2;">
+    <tr>
+      <th>Território</th>
+      <th>Territorialidade</th>
+      <th>Território e Territorialidade Pesqueira</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Raffestin (1986, 1993)</td>
+      <td>Raffestin (1993)</td>
+      <td>De Paula (2022)</td>
+    </tr>
+    <tr>
+      <td>Haesbaert (2003)</td>
+      <td>Haesbaert (2003)</td>
+      <td>De Paula (2023)</td>
+    </tr>
+  </tbody>
+</table>
+
+      </div>
+    </div>
+  
+  </section>
 
 
 <!-- 29. TERRITÓRIO RAFFESTIN 1 -->
@@ -1366,6 +1609,7 @@
   <hr class="rule">
   <div class="content" style="justify-content:center;">
     <div class="stat">
+      <div class="table-scroll">
       <table style="border: 1px solid; " class="cronograma">
         <thead>
           <tr>
@@ -1426,6 +1670,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
       
     </div>
       <div class="stat" style="background-color:#F5F1E8;">    
