@@ -480,47 +480,150 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1; /* Fica atrás do conteúdo dos slides */
+  z-index: 1; /* Cenário ocupa a janela; conteúdo permanece na camada superior. */
   pointer-events: none; /* Impede que as imagens bloqueiem cliques nos slides */
   overflow: hidden;
 }
 
-#ondas-container {
-  position: absolute;
-  bottom: -20px;
-  left: 0;
-  width: 200%; /* Twice the slide width for seamless scroll (uses %, so it scales with reveal.js) */
-  height: auto;
-  display: flex;
-  opacity: 0.8;
+#rio-layer { position:absolute; bottom:0; left:0; height:240px; transform-origin:left bottom; }
+.river-glow { position:absolute; inset:60px 0 0; background:linear-gradient(transparent,rgba(110,143,113,.10)); }
+.wave-track { position:absolute; bottom:-80px; left:0; display:flex; width:max-content; opacity:.48; will-change:transform; z-index:1; }
+.wave-track img { display:block; width:1280px; max-width:none; max-height:none; height:auto; flex:0 0 1280px; margin:0; }
+/* A sequência original/espelho se repete a cada 2560px, com bordas idênticas. */
+.wave-track img:nth-child(even) { transform:scaleX(-1); }
+.wave-track.rear { bottom:-52px; opacity:.13; z-index:0; }
+#barco-wrapper { position:absolute; bottom:22px; left:0; width:220px; height:180px; will-change:transform; z-index:3; }
+#barco-balance { width:220px; height:180px; transform-origin:50% 82%; will-change:transform; }
+#barco-animado { position:absolute; width:1000px; max-width:none; max-height:none; height:auto; left:-430px; top:-245px; margin:0; filter:drop-shadow(0 0 1px #fff8e8) drop-shadow(0 2px 1px rgba(16,48,60,.6)); }
+.boat-wake { position:absolute; bottom:22px; left:-52px; width:145px; height:13px; border-bottom:2px solid #6e8f71; border-radius:50%; opacity:.45; transition:opacity 1s; }
+.boat-wake::after { content:''; position:absolute; left:22px; top:8px; width:115px; height:8px; border-bottom:1px solid #b5652f; border-radius:50%; }
+.is-docked .boat-wake { opacity:0; }
+#cais { position:absolute; right:-8px; bottom:22px; width:240px; height:130px; opacity:0; transform:translateX(65px); transition:opacity 1.8s,transform 2.4s ease; z-index:4; }
+.is-arriving #cais { opacity:1; transform:translateX(0); }
+.dock-deck { position:absolute; top:54px; width:100%; height:17px; border:2px solid #b58c69; border-radius:3px; background:repeating-linear-gradient(90deg,#745b49 0 32px,#c29e7b 33px 35px); }
+.dock-post { position:absolute; top:40px; width:11px; height:90px; border-radius:4px 4px 0 0; background:#8b7059; border-left:2px solid #d7b491; }
+.dock-post:nth-child(2) { left:22px; } .dock-post:nth-child(3) { left:126px; } .dock-post:nth-child(4) { right:16px; }
+.dock-rope { position:absolute; left:-27px; top:58px; width:55px; height:12px; border-bottom:2px solid #c4a780; border-radius:0 0 50% 50%; opacity:0; transition:opacity 1s; }
+.is-docked .dock-rope { opacity:1; }
+#aves { position:absolute; inset:0; color:#537987; opacity:.8; transition:opacity 2s,color 1.5s; }
+.scene-dark #aves { color:#aec6c8; }
+.is-raining #aves { opacity:.3; }
+.bird { position:absolute; left:0; top:0; width:48px; height:28px; will-change:transform; }
+.bird svg { display:block; width:100%; height:100%; overflow:visible; fill:currentColor; }
+.bird-wing { transform-origin:31px 20px; animation:wing-beat .8s ease-in-out infinite alternate; }
+.bird-wing.far { opacity:.45; animation-delay:-.3s; }
+@keyframes wing-beat { from { transform:scaleY(1); } to { transform:scaleY(-.65); } }
+#chuva { position:absolute; inset:0; opacity:0; transition:opacity .65s; }
+#chuva::before { content:''; position:absolute; inset:0; background:linear-gradient(rgba(69,102,124,.12),transparent 65%); }
+.is-raining #chuva { opacity:1; }
+.rain-drop { position:absolute; top:-60px; width:1.6px; height:32px; background:linear-gradient(transparent,rgba(62,111,138,.8)); animation:rain-fall .9s linear infinite; animation-play-state:paused; }
+.rain-drop.near { width:2.2px; height:52px; opacity:.95; }
+.rain-drop.far { width:1px; height:22px; opacity:.45; }
+.scene-dark .rain-drop { background:linear-gradient(transparent,rgba(193,226,240,.85)); }
+.is-raining .rain-drop { animation-play-state:running; }
+@keyframes rain-fall { from { transform:translate3d(70px,-40px,0) rotate(12deg); } to { transform:translate3d(-130px,calc(100vh + 120px),0) rotate(12deg); } }
+.rain-ripple { position:absolute; bottom:32px; width:20px; height:5px; border:1px solid #9dbac0; border-radius:50%; animation:rain-ripple 1.8s ease-out infinite; animation-play-state:paused; }
+.is-raining .rain-ripple { animation-play-state:running; }
+@keyframes rain-ripple { from { transform:scale(.2); opacity:.6; } to { transform:scale(2.4); opacity:0; } }
+.rain-splash { position:absolute; bottom:18px; width:3px; height:10px; border-radius:50%; background:rgba(120,160,180,.55); animation:rain-splash 1.1s ease-out infinite; animation-play-state:paused; }
+.is-raining .rain-splash { animation-play-state:running; }
+@keyframes rain-splash { 0% { transform:translateY(0) scale(.4); opacity:.7; } 55% { transform:translateY(-14px) scale(1.2,1.6); opacity:.35; } 100% { transform:translateY(-28px) scale(.2); opacity:0; } }
+.reveal.overview #cenario-animado, .reveal.paused #cenario-animado { visibility:hidden; }
+.scene-paused *, .scene-reduced * { animation-play-state:paused !important; }
+@media (prefers-reduced-motion:reduce) {
+  #cenario-animado *, .reveal .slides section * { animation:none !important; transition:none !important; }
+  #chuva { display:none; }
 }
+@media print { #cenario-animado { display:none; } }
 
-#ondas-1, #ondas-2 {
-  width: 50%; /* Half of the 200% container = one full slide width */
-  height: auto;
-  flex-shrink: 0;
-}
+/* Composições editoriais: contraste de escala, comparação e relato de campo. */
+.reveal .editorial-layout { display:grid; grid-template-columns:1.05fr 1fr; gap:54px; margin-top:32px; }
+.reveal .intro-statement { font:600 31px/1.35 var(--heading-font); margin:0; color:var(--dark-text); }
+.reveal .intro-detail { font-size:19px; color:var(--dark-muted); margin-top:24px; }
+.research-route { border-left:1px solid var(--dark-line); padding-left:30px; }
+.research-route article { margin:0 0 25px; }
+.research-route h3 { font-size:22px; margin:0 0 7px; }
+.research-route p { font-size:18px; margin:0; }
+.reveal .source-note { font-size:12px; color:var(--muted-color); margin-top:22px; line-height:1.4; }
+.dark-slide .source-note { color:var(--dark-muted); }
+.sig-comparison { display:grid; grid-template-columns:1fr 1fr; gap:48px; margin-top:22px; }
+.sig-column + .sig-column { border-left:1px solid var(--dark-line); padding-left:40px; }
+.sig-column h3 { font-size:27px; margin-bottom:12px; }
+.sig-column p { font-size:19px; margin:0 0 14px; }
+.sig-column ul { margin:0 0 14px 22px; }
+.sig-column li { font-size:19px; }
+.reveal .application-strip { border-top:1px solid var(--dark-line); margin-top:16px; padding-top:17px; font-size:19px; max-width:1060px; }
+.field-layout { display:grid; grid-template-columns:1.12fr 1fr; gap:34px; margin-top:22px; }
+.field-photos { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-content:start; }
+.field-photos figure { margin:0; }
+.reveal .field-photos img { width:100%; height:233px; object-fit:cover; margin:0; border-radius:4px; }
+.field-photos figcaption { font-size:13px; line-height:1.5; color:var(--muted-color); padding-top:7px; }
+.field-story h3 { font-size:23px; margin:0 0 9px; }
+.field-story p { font-size:18px; margin:0 0 21px; }
+.reveal .field-takeaway { font:500 22px/1.4 var(--heading-font); border-left:3px solid var(--secondary-color); padding-left:18px; margin:22px 0 0; }
 
-#barco-wrapper {
-  position: absolute;
-  bottom: 20px; /* Base position */
-  left: -400px;
-  width: 1000px;
-  transition: transform 1.1s cubic-bezier(0.25, 1, 0.5, 1); /* só o deslocamento horizontal usa transition */
-  will-change: transform;
-}
-
-#barco-animado {
-  display: block;
-  width: 100%;
-  height: auto;
-  transform-origin: 50% 82%; /* pivô perto da linha d'água, pra girar como se balançasse na onda */
-  will-change: transform;
-}
+/* Faixa inferior livre para a travessia, inclusive nos slides mais densos. */
+#contra-cartografia-poder ul, #contra-cartografias ul { margin:0; padding:0; }
+#contra-cartografia-poder .card, #contra-cartografias li.card { font-size:19px; padding:12px 16px; margin-bottom:10px; }
+#contra-cartografia-poder blockquote { align-self:start; }
+#contra-cartografias blockquote { margin:0; font-style:normal; border:0; }
+#contra-cartografias img { height:280px !important; object-fit:contain; }
+#contra-cartografias .stat { border:0; background:none; padding:10px 15px; }
+#contra-cartografias .stat h3 { font-size:23px; }
+#contra-cartografias .stat p { font-size:18px; line-height:1.4; }
+#territorio-raffestin-2 .content { justify-content:flex-start !important; }
+#territorio-raffestin-2 .content > div { align-items:center !important; gap:28px; }
+#territorio-raffestin-2 .diagram-stage { display:block; flex:0 0 650px; height:530px; }
+#territorio-raffestin-2 .diagram-stage > img { position:absolute; left:110px; top:138px; width:425px !important; height:300px; object-fit:contain; margin:0; transform:translate(25px,-50px) scale(1.7); }
+#territorio-raffestin-2 .diagram-callout { position:absolute; width:185px !important; padding:12px; box-shadow:none; }
+#territorio-raffestin-2 .diagram-callout.terra { left:0 !important; top:0 !important; }
+#territorio-raffestin-2 .diagram-callout.verde { left:465px !important; top:6px !important; }
+#territorio-raffestin-2 .diagram-callout.azul { left:275px !important; top:390px !important; }
+#territorio-raffestin-2 .diagram-arrows { display:block; width:650px; height:530px; z-index:1; }
+#territorio-raffestin-2 .tdr-side-card { flex:1; margin:0; padding:24px; align-self:center; }
+#territorio-raffestin-2 .tdr-side-card h2 { font-size:31px; white-space:nowrap; }
+#territorio-raffestin-2 .tdr-side-card h3 { font-size:23px; }
+#territorio-raffestin-2 .tdr-side-card p { font-size:19px; margin:14px 0 24px; }
+#territorio-raffestin-2 .tdr-side-card p:last-child { margin-bottom:0; }
+#territorio-raffestin-2, #mapas-marinheiros-terra-agua, #mapa-ilha-dos-marinheiros { padding:32px 36px; }
+#reatcarto-fluxograma .content { height:435px; }
+.reveal .bibliography { list-style:none; margin:12px 0 0; padding:0; }
+.reveal .bibliography li { font-size:18px; line-height:1.42; margin:0 0 13px; padding:0 0 12px; border-bottom:1px solid var(--line-color); }
+.principle-feature { display:grid; grid-template-columns:.8fr 1.2fr; gap:48px; align-items:center; margin-top:46px; }
+.principle-index { font:700 88px/1 var(--heading-font); color:#B5652F; letter-spacing:-5px; }
+.principle-claim { font:600 30px/1.32 var(--heading-font); color:#1F4E5F; margin:0 0 17px; }
+.principle-copy { font-size:19px; max-width:730px; }
+.principle-evidence { display:grid; grid-template-columns:1fr 1fr; gap:22px; border-top:1px solid var(--line-color); margin-top:25px; padding-top:18px; }
+.principle-evidence p { font-size:16px; margin:0; }
+.dark-slide .principle-index { color:var(--dark-accent); }
+.dark-slide .principle-claim { color:var(--dark-text); }
+.dark-slide .principle-evidence { border-color:var(--dark-line); }
+.principle-index-sub { font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--muted-color); margin-top:12px; }
+.dark-slide .principle-index-sub { color:var(--dark-muted); }
+.map-pair { display:grid; grid-template-columns:1fr 1fr; gap:32px; margin-top:20px; }
+.map-figure { margin:0; text-align:center; }
+.reveal .slides section .map-figure img { width:100%; height:320px; object-fit:contain; background:transparent; mix-blend-mode:multiply; margin:0; }
+.map-figure figcaption { margin-top:8px; font-size:16px; line-height:1.35; color:var(--text-color); }
+.map-review { display:grid; grid-template-columns:.88fr 1.12fr; gap:42px; align-items:center; margin-top:12px; }
+.reveal .slides section .map-review img { height:385px; width:100%; object-fit:contain; margin:0; background:transparent; mix-blend-mode:multiply; }
+.map-note { border-left:4px solid var(--secondary-color); padding:4px 0 4px 18px; font-size:17px; line-height:1.5; }
+.map-note strong { color:var(--primary-color); }
+.map-laptop { position:relative; padding:0 12px 48px; }
+.laptop-screen { position:relative; padding:22px 12px 12px; border:3px solid #946446; border-radius:20px 20px 8px 8px; background:#eee5d6; box-shadow:inset 0 0 0 4px #fbf8f2, 0 8px 18px #10303c14; }
+.laptop-screen::before { content:''; position:absolute; top:7px; left:50%; width:5px; height:5px; border:1px solid #6e8f71; border-radius:50%; }
+.map-laptop::after { content:''; position:absolute; left:0; right:0; bottom:9px; height:38px; border:2px solid #946446; border-radius:3px 3px 40% 40% / 3px 3px 16px 16px; background:linear-gradient(#eee5d6 0 70%,#d4c8b4 72%); box-shadow:0 8px 9px #10303c12; }
+.map-laptop::before { content:''; position:absolute; z-index:1; bottom:29px; left:40%; width:20%; height:13px; border:1px solid #a3947f; border-radius:0 0 8px 8px; background:#fbf8f2; }
+.reveal .slides section .laptop-screen img { display:block; width:100%; height:365px; margin:0; object-fit:contain; background:#fbf8f2; mix-blend-mode:multiply; }
+.map-pair { gap:20px; margin-top:24px; }
+.map-review { grid-template-columns:1.05fr 1fr; gap:28px; }
+.reveal .slides section .map-review .laptop-screen img { height:405px; }
+.is-raining .wave-track { opacity:.76; }
+.is-raining .wave-track.rear { opacity:.38; }
+.wave-track { transform-origin:center bottom; transition:opacity 1.4s; }
 
 /* Garante que o conteúdo dos slides fique acima do barco/ondas */
 .reveal .slides {
-  z-index: 1;
+  z-index: 2;
 }
 
 /* =========================================
@@ -585,290 +688,94 @@ html, body {
 .dark-slide .card:hover {
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
 }
-  
-  .cronograma td { 
+
+  .cronograma td {
     text-align: center;
     border-left: 1px solid white;
-    padding: 4px 8px; 
+    padding: 4px 8px;
   }
-  
-  
+
+
 </style>
 </head>
 <body>
 <div class="reveal">
 
-<div class="slides">
-  <!-- Elementos de Fundo Animado: ficam DENTRO de .slides para escalar junto com os slides em qualquer tela -->
-  <div id="cenario-animado">
-    <div id="ondas-container">
-      <img src="1.png" id="ondas-1" alt="Ondas">
-      <img src="1.png" id="ondas-2" alt="Ondas">
-    </div>
+  <!-- Cenário independente da área 16:9 dos slides: ocupa toda a janela. -->
+  <div id="cenario-animado" aria-hidden="true">
+    <div id="aves"></div>
+    <div id="chuva"></div>
+    <div id="rio-layer">
+    <div class="river-glow"></div>
+    <div class="wave-track rear" data-speed="12"></div>
+    <div id="ondas-container" class="wave-track" data-speed="21"></div>
     <div id="barco-wrapper">
-      <img src="5.png" id="barco-animado" alt="Barco">
+      <div class="boat-wake"></div>
+      <div id="barco-balance"><img src="5.png" id="barco-animado" alt=""></div>
+    </div>
+    <div id="cais"><span class="dock-deck"></span><span class="dock-post"></span><span class="dock-post"></span><span class="dock-post"></span><span class="dock-rope"></span></div>
     </div>
   </div>
 
+<div class="slides">
 
 <!-- 1. TITLE -->
-<section id="title" class="title-slide dark-slide" data-background-color="#10303C">
-  <div class="badge">Qualificação de Dissertação · Mestrado em Geografia</div>
-  <h1>Territórios de (R)Existência:</h1>
-  <h2>O REAT CARTO como ferramenta de luta e cartografia das comunidades pesqueiras</h2>
+<section id="title" class="title-slide">
+  <div class="badge">
+  <h2>TERRITÓRIOS DE LUTA E CARTOGRAFIA SOCIAL: O PAPEL DO REAT CARTO NA DEFESA DAS COMUNIDADES PESQUEIRAS</h2>
   <div class="meta">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
           <p><span class="label">Autor</span> Carlos Eduardo Ueno<br><span class="label">Orientador(a)</span> Prof. Dr. Cristiano Quaresma de Paula</p>
           <blockquote>
             <p class=""><span class="label"></span>Programa de Pós-Graduação em Geografia (PPGGeo)<br>Universidade Federal do Rio Grande — FURG · Rio Grande<br>CAPES</p>
           </blockquote>
-          
+
         </div>
-   
+
   </div>
 </section>
 
 <!-- 2. INTRODUÇÃO -->
-<section id="introducao">
+<section id="introducao" class="dark-slide" data-background-color="#10303C">
   <h2>Introdução</h2>
   <hr class="rule">
-  <div class="content">
-    <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; gap: 28px;">
-        <div>
-          <ul style="list-style-type: none; " >
-            <li class="card">Cartografia como instrumentos ofensivos do setor econômico sobre território de povos e comunidades tradicionais.</li>
-            <li class="card">Cartografia voltada para o mapeamento, reconhecimento, valorização e resistência das comunidades pesqueiras.</li>
-            <li class="card">Como contraponto ao apagamento gerado pelas cartografias, esta pesquisa busca apresentar subsídios técnicos para a construção das <strong>contra cartografias </strong></li>
-            <li class="card">O REAT CARTO uma ferramenta de luta para reivindicações territoriais</li>
-          </ul>
-        </div>
-        <blockquote>
-           <img width="100%" style="margin-left: 10%;" src="pc.png">
-        </blockquote>
-
-
+  <div class="editorial-layout">
+    <div>
+      <p class="intro-statement">Quem produz o mapa participa da definição do que se torna visível no território.</p>
+      <p class="intro-detail">A cartografia social permite que comunidades pesqueiras representem seus espaços de vida a partir de seus próprios conhecimentos e necessidades.</p>
     </div>
-
+    <div class="research-route">
+      <article><h3>O problema da representação</h3><p>Mapas oficiais podem omitir usos tradicionais da terra e da água. Barreiras técnicas também limitam a participação na produção cartográfica.</p></article>
+      <article><h3>A proposta do REAT CARTO</h3><p>Um WebSIG para produzir e atualizar mapas participativos, aproximando saberes locais e ferramentas geográficas.</p></article>
+      <article><h3>A experiência na Lagoa dos Patos</h3><p>O mapeamento comunitário contribui para a construção do Protocolo de Consulta e para a defesa territorial.</p></article>
+    </div>
   </div>
+  <p class="source-note">Acselrad (2013); Albuquerque (2025).</p>
+  <aside class="notes">Síntese da Introdução de GT05_ComObservações.md, fornecido pelo autor.</aside>
 </section>
 
-<!-- 3. OBJETIVO GERAL -->
-<section id="objetivo-geral">
-  <h2>Objetivo Geral</h2>
+<section id="sig-websig" class="dark-slide" data-background-color="#10303C">
+  <h2>SIG e WebSIG</h2>
   <hr class="rule">
-  <div class="content" style="justify-content:center;">
-    <div class="card">
-      <p>Avaliar o impacto e a viabilidade do sistema de cartografia social no mapeamento participativo dos territórios tradicionais das comunidades pesqueiras no Brasil, analisando as dinâmicas territoriais reveladas no WebSIG, a apropriação do sistema por pesquisadores e comunidades, e as demandas para seu aprimoramento como ferramenta política de análise, reivindicação e fortalecimento territorial.</p>
+  <div class="sig-comparison">
+    <div class="sig-column">
+      <h3><i class="fa-solid fa-layer-group" aria-hidden="true"></i> SIG</h3>
+      <p>Sistemas de Informação Geográfica integram localização e atributos para analisar e visualizar dados espaciais.</p>
+      <ul><li>Organização de informações em camadas.</li><li>Cruzamento de dados e análise de relações no espaço.</li><li>Produção de mapas temáticos.</li></ul>
+      <p>Ferramentas especializadas podem dificultar o uso sem formação técnica.</p>
+    </div>
+    <div class="sig-column">
+      <h3><i class="fa-solid fa-globe" aria-hidden="true"></i> SIG no navegador</h3>
+      <p>Os WebSIG oferecem funções geográficas pela internet, em computadores, tablets e celulares.</p>
+      <ul><li>Consulta de mapas e seleção de camadas.</li><li>Medição de distâncias e áreas.</li><li>Em sistemas participativos, inclusão e edição de informações.</li></ul>
+      <p>Interfaces simples ampliam o acesso, mas ainda dependem de conexão à internet.</p>
     </div>
   </div>
+  <p class="application-strip"><strong>No REAT CARTO:</strong> as comunidades registram territorialidades e atualizam dados para gerar mapas em PDF ou PNG.</p>
+  <p class="source-note">Andrade et al. (2013); Bravo e Sluter (2018); Gallis et al. (2018); Albuquerque (2025).</p>
+  <aside class="notes">Conceitos e referências resumidos da Introdução de GT05_ComObservações.md, fornecido pelo autor.</aside>
 </section>
 
-<!-- 4. OBJETIVOS ESPECÍFICOS -->
-<section id="objetivos-especificos" class="dark-slide" data-background-color="#10303C">
-  <h2> Objetivos Específicos</h2>
-  <hr class="rule">
-  <div class="content">
-    <div style="display:grid; grid-template-columns: repeat(2,1fr); gap:12px;">
-      <div class="card" style="padding:12px 18px;"><span class="pill">A</span><p style="font-size:12.5pt;">Avaliar o impacto do sistema enquanto ferramenta política na defesa dos territórios, por meio de entrevistas com usuários.</p></div>
-      <div class="card terra" style="padding:12px 18px;"><span class="pill terra">B</span><p style="font-size:12.5pt;">Aplicar o sistema no mapeamento do território tradicional das comunidades pesqueiras.</p></div>
-      <div class="card verde" style="padding:12px 18px;"><span class="pill verde">C</span><p style="font-size:12.5pt;">Analisar estruturas territoriais e culturais das comunidades a partir das cartografias sociais produzidas na plataforma.</p></div>
-      <div class="card" style="padding:12px 18px;"><span class="pill">D</span><p style="font-size:12.5pt;">Avaliar a apropriação e o uso do sistema por pesquisadores e comunidades, identificando facilidades e pontos de melhoria.</p></div>
-    </div>
-    <div class="card terra" style="margin-top:12px; padding:12px 18px;"><span class="pill terra">E</span><p style="font-size:12.5pt;">Tensionar as práticas cartográficas hegemônicas a partir de tecnologias digitais, consolidando abordagens de cartografia de resistência e caráter decolonial.</p></div>
-  </div>
-</section>
-
-
-
-<!-- 5. JUSTIFICATIVA -->
-<section id="justificativa" data-transition="fade">
-
-  <h2>Justificativa</h2>
-  <hr class="rule">
-  <div class="content" style="margin-top: -5%; justify-content:center;">
-    <div class="timeline">
-      <div class="timeline-node azul">
-        <div class="dot">1</div>
-        <h4>Cartografia do poder</h4>
-        <p>Usada pelo Estado e por detentores do capital para remover pessoas de seus territórios em favor de grandes empreendimentos.</p>
-      </div>
-      <div class="timeline-node verde">
-        <div class="dot">2</div>
-        <h4>Não neutralidade dos mapas</h4>
-        <p class="stat">A cartografia é uma poderosa ferramenta de comunicação e com ela selecionamos o que será ou não apresentado/representado</p>
-      </div>
-      <div class="timeline-node">
-        <div class="dot">3</div>
-        <h4>Apropriação (séc. XX)</h4>
-        <p>Povos tradicionais passam a se apropriar da cartografia para defender e preservar territórios e recursos.</p>
-      </div>
-      <div class="timeline-node verde">
-        <div class="dot">4</div>
-        <h4>Dependência burocrática</h4>
-        <p class="stat">Comunidades ainda dependem de agentes externos para a construção de mapas digitalizados com garantia jurídica.</p>
-      </div>
-      <div class="timeline-node azul">
-        <div class="dot">5</div>
-        <h4>REAT CARTO</h4>
-        <p>Ampliar a escala de utilização para que mais comunidades demarquem suas terras, territórios e territorialidades.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 6. METODOLOGIA -->
-<section id="metodologia">
-  <h2>Abordagem Metodológica</h2>
-  <hr class="rule">
-  <div class="content" style="justify-content:center;">
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:28px; align-items:center;">
-      <div class="card">
-        <h3><i class="fa-solid fa-people-group"></i> Pesquisa Participativa <strong> (Thiollent, 2011).</strong></h3>
-        <p>Pesquisa, realizada em estreita associação com a resolução de um problema coletivo, com pesquisadores e participantes envolvidos cooperativamente .</p>
-      </div>
-      <div class="card terra">
-        <h3><i class="fa-solid fa-user-check"></i> Papel do pesquisador</h3>
-        <p>Facilitador técnico que atua junto à comunidade na resolução de um problema prático: a defesa e demarcação do território frente a agentes externos.</p>
-      </div>
-    </div>
-    <p class="text-lg" style="margin-top:22px; text-align:center;">Abordagem <strong>qualitativa</strong> — coleta de dados em campo articulada ao trabalho de laboratório, tensionando a cartografia acadêmica e ocidental.</p>
-  </div>
-</section>
-
-<!-- 7. PROCEDIMENTOS - OFICINAS -->
-<section id="proc-oficinas">
-  <h2>Oficinas Cartográficas</h2>
-  <hr class="rule">
-  <div class="content">
-    <ul>
-      <li>Encontros entre pesquisadores e membros das comunidades para apresentar o REAT CARTO.</li>
-      <li>Não se restringem a treinamento técnico: são espaços de <strong>construção conjunta</strong>.</li>
-      <li>Participantes têm contato guiado com o sistema — inserir, manipular e visualizar dados espaciais dos territórios.</li>
-      <li>Papel metodológico central: observar as interações iniciais dos sujeitos com a tecnologia, base para as entrevistas posteriores, além de disponibilizar a ferramenta para uso continuo.</li>
-    </ul>
-  </div>
-</section>
-
-<!-- 8. PROCEDIMENTOS - ENTREVISTAS -->
-
-
-
-<section id="proc-entrevistas" class="dark-slide" data-background-color="#10303C" data-transition="zoom">
-  <h2>Entrevistas Semiestruturadas e Questionário</h2>
-  
-  <div class="content">
-    <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; gap: 28px;">
-      <div class="card">
-        <h3>Entrevistas (Lima, 2016)</h3>
-        <ul style="font-size:13pt;">
-          <li><strong>Eixo 1</strong> — Ferramenta política e usabilidade técnica</li>
-          <li><strong>Eixo 2</strong> — Processo e contexto sociopolítico</li>
-          <li><strong>Eixo 3</strong> — Apropriação, autonomia e identidade</li>
-        </ul>
-      </div>
-      <div class="card terra">
-        <h3>Questionário via Google Forms</h3>
-        <ul style="font-size:13pt;">
-          <li><strong>Eixo 1</strong> — Aplicações visuais e potenciais</li>
-          <li><strong>Eixo 2</strong> — Engajamento e características do processo cartográfico</li>
-          <li><strong>Eixo 3</strong> — Contexto de uso e densidade técnica</li>
-        </ul>
-      </div>
-    </div>
-    <hr class="rule">
-    <h2>Coleta, Análise e Revisão</h2>
-    <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:16px;">
-      <div class="card">
-        <h3><i class="fa-solid fa-file-lines"></i> Análise de Conteúdo (Bardin 2016)</h3>
-        <p style="font-size:12.5pt;">Tratamento sistemático das transcrições e formulários aplicados.</p>
-      </div>
-      <div class="card terra">
-        <h3><i class="fa-solid fa-map"></i> Análise Territorial (De Paula 202x)</h3>
-        <p style="font-size:12.5pt;">Análise dos territórios pesqueiros com decifração das <strong>malhas, redes e nós</strong> com amostra de 10 cartografias sociais salvas na plataforma.</p>
-      </div>
-      <div class="card verde">
-        <h3><i class="fa-solid fa-book-open"></i> Revisão Bibliográfica</h3>
-        <p style="font-size:12.5pt;">Sistematização de autores sobre cartografias contra-hegemônicas, subsidiando o Objetivo E.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-
-
-
-
-<!-- 11. DIVIDER: ABORDAGEM TEÓRICA -->
-  <section id="divider-teoria" data-transition="zoom">
-    <h2 style="color: #1F4E5F">Referencial Teórico</h2>
-    <hr class="rule">
-    <div  style="margin-top: 18%; margin-left: 10%;"> 
-      <h1 style="color: #1F4E5F">Cartografia e contra Cartografia</h1>
-    </div>
-  </section>
-
-
-
-
-  <section>
-    <h2 style="color: #1F4E5F">Referencial Teórico</h2>
-    <hr class="rule">
-    <div class="content">
-      <div class="stat">
-        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; text-align: center;">
-  <thead style="background-color: #f2f2f2;">
-    <tr>
-      <th>Contra Cartografia</th>
-      <th>Cartografia Participativa</th>
-      <th>Cartografia Social</th>
-      <th>Cartografia da Ação Social</th>
-      <th>Mapeamento Colaborativo</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Silva et al. (2021)</td>
-      <td>Acselrad (2008)</td>
-      <td>Almeida (2004)</td>
-      <td>Silva, Schipper (2012)</td>
-      <td>Souto (2021)</td>
-    </tr>
-    <tr>
-      <td>Acselrad (2008)</td>
-      <td>Sombra (2022)</td>
-      <td>Acselrad (2013)</td>
-      <td>Silva, Ribeiro (2022)</td>
-      <td>Goodchild (2007)</td>
-    </tr>
-    <tr>
-      <td>Silva, Ribeiro (2022)</td>
-      <td>Tavares et al. (2016)</td>
-      <td>Pelegrina (2020)</td>
-      <td>Silva, Ribeiro (2021)</td>
-      <td>Ritzer (2008)</td>
-    </tr>
-    <tr>
-      <td>Rocha (2017)</td>
-      <td>Rocha (2015)</td>
-      <td>Ferreira et al. (2021)</td>
-      <td>-</td>
-      <td>Dodge, Kitchin (2013)</td>
-    </tr>
-    <tr>
-      <td>Bravo, Sluter (2018)</td>
-      <td>Araújo et al. (2017)</td>
-      <td>Santos (2016)</td>
-      <td>-</td>
-      <td>Machado, Camboim (2019)</td>
-    </tr>
-  </tbody>
-</table>
-
-      </div>
-    </div>
-  
-  </section>
 
 <!-- 12. CONTRA CARTOGRAFIA - PODER -->
 <section id="contra-cartografia-poder">
@@ -889,25 +796,8 @@ html, body {
   </div>
 </section>
 
-<!-- 13. CONTRA CARTOGRAFIA - APROPRIAÇÃO 
-<section id="contra-cartografia-apropriacao">
- 
-  <h2>De instrumento colonizador a arma de luta</h2>
-  <hr class="rule">
-  <div class="content">
-    <ul>
-      <li>A partir da década de 1990, a cartografia passa a ser vista como <strong>prática social</strong> — instrumento de representação de territórios comunitários tradicionais (Silva; Ribeiro, 2022).</li>
-      <li>Povos indígenas, quilombolas e comunidades tradicionais se apropriam da técnica para dialogar e pressionar o Estado (Acselrad, 2015).</li>
-      <li>Diversas terminologias quase sinônimas surgem: mapeamento etnoambiental, comunitário participativo, cultural, etnozoneamento, cartografia social...</li>
-    </ul>
-    <div class="card verde" style="margin-top:10px;">
-      <h3><i class="fa-solid fa-diagram-project"></i> Guarda-chuva metodológico</h3>
-      <p>A <strong>Cartografia Participativa</strong> funciona como categoria principal; dela derivam a Cartografia Social, a Cartografia da Ação Social e o Mapeamento Colaborativo.</p>
-    </div>
-  </div>
-</section>-->
 
-<section id="contra-cartografia-poder" >
+<section id="contra-cartografias" >
   <h2>Contra Cartografia</h2>
   <hr class="rule">
   <div class="content">
@@ -920,7 +810,7 @@ html, body {
         </div>
       </div>
 
-      
+
       <blockquote>
         <ul style="list-style-type: none; ">
           <li class="card">A partir da década de 1990, a cartografia passa a ser vista como <strong>prática social</strong> — instrumento de representação de territórios comunitários tradicionais</li>
@@ -928,99 +818,12 @@ html, body {
           <li class="card">Diversas terminologias quase sinônimas surgem: mapeamento etnoambiental, comunitário participativo, cultural, etnozoneamento, cartografia social...</li>
         </ul>
       </blockquote>
-      
+
     </div>
-  
+
   </div>
 </section>
 
-
-<!-- 14. CARTOGRAFIA PARTICIPATIVA -->
-<section id="cartografia-participativa"  data-background-color="#10303C" data-transition="fade">
-
-  <div class="content"style="display:grid; grid-template-columns:0.9fr 1.1fr;" >
-    <div >
-      <h2>Cartografia Participativa</h2>
-      <hr class="rule">
-
-        <div class="card" style="background-color:#F5F1E8;"><p>Envolve diretamente os membros da comunidade no levantamento do uso da terra</p></div>
-        <div class="card" style="background-color:#F5F1E8;"><p>Depende, em certa medida, de agentes externos para manipular os mapas.</p></div>
-        <div class="card" style="background-color:#F5F1E8;">
-          <p>Funciona como uma <strong>ponte</strong> entre o saber técnico e o saber tradicional<p></div>
-        <div class="card" style="background-color:#F5F1E8;"><p>Metodologia diversa: desenhos e croquis ao uso de SIG e imagens de satélite.</p></div>
-    </div>
-
-    <div style="margin-left:10%;"> 
-      <h2>Cartografia Social</h2>
-        <hr class="rule">
-        <div class="card" style="background-color:#F5F1E8;"><p>Expressa o vigor dos saberes locais, sem submissão estrita às normas da cartografia matemática.</p></div>
-        <div class="card" style="background-color:#F5F1E8;"><p>No Brasil, ganhou força com o <strong>Projeto Nova Cartografia Social da Amazônia</strong>, liderado por Alfredo Wagner</p></div>
-        <div class="card" style="background-color:#F5F1E8;"><p>Processo horizontal: onde o pesquisador atua como facilitador; a comunidade decide o que mapear</p></div>
-        <div class="card" style="background-color:#F5F1E8;"><p>Croquis (desenhos à mão) para representar o território; GPS para georreferenciar.</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="cartografia-colaborativa"   data-transition="fade">
-
-  <div class="content"style="display:grid; grid-template-columns:0.9fr 1.1fr;" >
-    <div >
-      <h2>Cartografia Da Ação Social</h2>
-      <hr class="rule">
-
-        <div class="card">
-          <p>Desloca o olhar da "terra contínua" para o <strong>"movimento da sociedade"</strong></p>
-        </div>
-        <div class="card">
-          <p>Foca sujeitos que não ocupam território contínuo demarcável por polígono — comum em contextos urbanos e periféricos.</p>
-        </div>
-        <div class="card">
-          <p>O mapa não é a prioridade, mas um acessório processual: o foco é o sentido da ação, o aprendizado coletivo e a reflexão crítica.<p>
-          </div>
-        <div class="card">
-          <p>Funciona como exercício de denúncia, resistência e valorização imaginativa dos lugares vividos.</p>
-        </div>
-    </div>
-
-    <div style="margin-left:10%;"> 
-      <h2>Mapeamento Colaborativo</h2>
-        <hr class="rule">
-        <div class="card">
-          <p>Ela tem sido utilizada para mapeamento popular, como por exemplo a <strong>identificação de quedas d’água desconhecidas;</strong> para o <strong>planejamento urbano;</strong> <strong>integração dos dados do OpenStreetMap com dados institucionais</strong> etc</p>
-        </div>
-        <div class="card">
-          <p>O advento da Web 2.0 permitiu que as pessoas comuns participassem da construção de bases cartográficas<p>
-        </div>
-        <div class="card">
-          <p>Qualquer pessoa conectado pode atuar como voluntário, inserindo dados espaciais via smartphones e plataformas web.</p>
-        </div>
-
-        <div class="card">
-          <p>Exemplos: OpenStreetMap, Google Maps, Waze<p>
-          </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- 19. QUADRO COMPARATIVO -->
-<section id="quadro-comparativo">
-  <h2>Características das Cartografias</h2>
-  <hr class="rule">
-  <div class="content" style="justify-content:center;">
-    <div class="card">
-      <table>
-        <thead><tr><th>Abordagem</th><th>Agentes e foco</th><th>Metodologia</th><th>Finalidade</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Participativa</strong></td><td>Comunidades + técnicos externos; uso da terra</td><td>Capacitação técnica, SIG, satélite</td><td>Rigor técnico para confrontar bases oficiais</td></tr>
-          <tr><td><strong>Social</strong></td><td>Povos tradicionais; territórios contínuos e ancestrais</td><td>Oficinas, croquis, pesquisador-facilitador</td><td>Direitos jurídicos, denúncia, identidade</td></tr>
-          <tr><td><strong>Ação Social</strong></td><td>Movimentos sociais e sujeitos urbanos; redes não contínuas</td><td>Grupos focais, glossários, símbolos</td><td>Compreender a sociedade em movimento</td></tr>
-          <tr><td><strong>Colaborativa</strong></td><td>Cidadãos comuns; escala massiva descentralizada</td><td>Plataformas Web 2.0, dados assíncronos</td><td>VGI baseada em inteligência coletiva</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
 
 <!-- . DUVISÃO -  -->
 <section id="divider-teoria" class="section-divider" data-background-color="#10303C" data-transition="zoom">
@@ -1030,58 +833,9 @@ html, body {
   </div>
 </section>
 
-  <section id="divider-teoria" data-transition="zoom">
-    <h2 style="color: #1F4E5F">Referencial Teórico</h2>
-    <hr class="rule">
-    <div  class="content">
-      <div class="stat" style="margin-left: 30%; width: 33%;">
-      <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 50%; font-family: Arial, sans-serif; text-align: center;">
-        <thead style="background-color: #f2f2f2;">
-          <tr>
-            <th>Reat Carto / WebSIG</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Andrade et al. (2013)</td>
-            
-          </tr>
-          <tr>
-            <td>Gallis et al. (2018)</td>
-           
-          </tr>
-          <tr>
-            <td>Bolfe et al. (2008)</td>
-            
-          </tr>
-          <tr>
-            <td>Albuquerque (2025)</td>
-
-          </tr>
-          <tr>
-            <td>Acselrad (2015)</td>
-
-          </tr>
-          <tr>
-            <td>Silva et al. (2021)</td>
-
-          </tr>
-          <tr>
-            <td>Ribeiro (2021)</td>
-
-          </tr>
-          <tr>
-            <td>Silva, Schipper (2012)</td>
-         
-          </tr>
-        </tbody>
-      </table>
-      </div> 
-    </div>
-  </section>
 
 <!-- 20. REAT CARTO HISTÓRIA -->
-<section id="reatcarto-historia">
+<section id="reatcarto-historia" data-rain="true">
 
   <h2>História do Sistema</h2>
   <hr class="rule">
@@ -1098,39 +852,53 @@ html, body {
           <p>Criado pelo Núcleo de Ensino, Pesquisa e Extensão (R)Existências Ambientais e Territoriais, em projeto de iniciação científica tecnológica.<p>
         </div>
       </div>
-      <div>
-        <img width="65%" style="margin-left:20%;margin-top: -1%" src="logoreat.png">
-      </div>
+      
+        <img width="100%" style="margin-left:20%;margin-top: -1%" src="pc.png">
+   
     </div>
   </div>
 </section>
 
-<!-- 21. REAT CARTO PRINCÍPIOS 
-<section id="reatcarto-principios">
 
-  <h2>Princípios do Desenvolvimento</h2>
+
+<!--REAT CARTO PRINCÍPIOS -->
+<section id="reatcarto-principios" data-rain="true" class="dark-slide" data-background-color="#10303C"  data-transition="fade">
+
+  <h2>Princípios do Desenvolvimento<</h2>
   <hr class="rule">
-  <div class="content">
-    <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:18px;">
-      <div class="card">
-        <h3><i class="fa-solid fa-hand-sparkles"></i> Simplicidade</h3>
-        <p style="font-size:12.5pt;">Interface intuitiva, acessível a pessoas sem formação em SIG (Albuquerque, 2025).</p>
+  <div class="content" style="margin-top: -5%; justify-content:center;">
+    <div class="timeline">
+      <div class="timeline-node azul">
+        <div class="dot">1</div>
+        <h4>Simplicidade</h4>
+        <p>Interface intuitiva, acessível a pessoas sem formação em SIG</p>
       </div>
-      <div class="card terra">
-        <h3><i class="fa-solid fa-user-shield"></i> Autonomia</h3>
-        <p style="font-size:12.5pt;">Lideranças comunitárias identificam, documentam e representam territorialidades conforme suas próprias necessidades.</p>
+      <div class="timeline-node verde">
+        <div class="dot">2</div>
+        <h4>Autonomia</h4>
+        <p class="stat">As comunidades identificam, documentam e representam territorialidades conforme suas próprias necessidades.o</p>
       </div>
-      <div class="card verde">
-        <h3><i class="fa-solid fa-arrows-rotate"></i> Atualização contínua</h3>
-        <p style="font-size:12.5pt;">Mapas vivos: territórios não são estáticos — dados podem ser editados continuamente pela comunidade.</p>
+      <div class="timeline-node">
+        <div class="dot">3</div>
+        <h4>Atualização contínua</h4>
+        <p>Mapas vivos: territórios não são estáticos — dados podem ser editados continuamente pela comunidade.</p>
+      </div>
+      <div class="timeline-node verde">
+        <div class="dot">4</div>
+        <h4>Rigor técnico</h4>
+        <p class="stat">Critérios cartográficos e mapas em PDF ou PNG apoiam a apresentação das reivindicações comunitárias</p>
       </div>
     </div>
-    <p class="text-lg" style="margin-top:20px; text-align:center;">Meta: simplicidade no processo, sem abrir mão do rigor técnico exigido para reivindicação de direitos.</p>
   </div>
 </section>
 
- 22. FLUXOGRAMA -->
-<section id="reatcarto-fluxograma" class="dark-slide" data-background-color="#10303C" data-transition="fade">
+
+
+  
+
+
+
+<section id="reatcarto-fluxograma"  class="dark-slide" data-background-color="#10303C" data-transition="fade">
   <h3>Fluxograma do Sistema</h3>
   <hr class="rule">
   <div class="content" style="align-items:center;">
@@ -1140,284 +908,6 @@ html, body {
      <p class="footnote" style="position:static; text-align:center; margin-top:6px;">Fonte: autoral (2026)</p>
   </div>
 </section>
-
-<!-- 23. REAT CARTO E CONTRA CARTOGRAFIAS 
-<section id="reatcarto-contracartografias">
-
-  <h2>REAT CARTO, Cartografia Social e Participativa</h2>
-  <hr class="rule">
-  <div class="content">
-    <ul>
-      <li>Enquanto a cartografia tradicional serve às demandas do capital e do Estado, a cartografia social vem na contramão: redistribuição, demarcação e reconhecimento de territórios (Acselrad, 2015).</li>
-      <li>O sistema garante controle total do processo às comunidades — combatendo a invisibilidade produzida pelos mapas oficiais.</li>
-      <li>Converte territorialidades — áreas de pesca, rotas, zonas de conflito — em dados georreferenciados com validade jurídica e institucional (Silva et al., 2021).</li>
-      <li>Adotado em escolas comunitárias, promovendo diagnósticos territoriais entre diferentes gerações de pescadores.</li>
-    </ul>
-  </div>
-</section>
-
- 24. REAT CARTO E AÇÃO SOCIAL 
-<section id="reatcarto-acao-social">
-
-  <h2>REAT CARTO e as Cartografias</h2>
-  <hr class="rule">
-  <div class="content"style="display:grid; grid-template-columns:1fr 1fr; gap:26px;">
-    <div class="">
-
-      <ul>
-        <li>Cartografia social Registra a "sociedade em movimento": diferente de mapas estáticos, permite atualizações contínuas frente a novas ameaças socioambientais.</li>
-        <li>Lideranças inserem e editam dados que codificam conflitos e relações de poder em tempo real.</li>
-        <li>Privacidade: cada dado pode ser marcado como visível ou não ao público — resposta aos riscos de exposição apontados por Ribeiro.</li>
-      </ul>
-    </div>
-      <img src="pc.png" style="width:100%; height:auto; align-self:center;">
-  </div>
-</section>
-
- DUVISÃO -  -->
-<section id="divider-teoria" class="section-divider" data-background-color="#10303C" data-transition="zoom">
-  <div>
-    <h1>POLITICAS PUBLICAS</h1>
-
-  </div>
-</section>
-
-<section id="divider-teoria" data-transition="zoom">
-    <h2 style="color: #1F4E5F">Referencial Teórico</h2>
-    <hr class="rule">
-    <div  class="content">
-      <div class="stat" style="margin-top:10%;">
-            
-        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 50%; font-family: Arial, sans-serif; text-align: center;">
-          <thead style="background-color: #f2f2f2;">
-            <tr>
-              <th>Protocolo de Consulta</th>
-              <th>PAE Pesqueiro</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Comunidades Tradicionais Pesqueiras da Lagoa dos Patos (2025)</td>
-              <td>Portaria nº 1.498/2025</td>
-            </tr>
-            <tr>
-              <td>OIT 169 (Convenção)</td>
-              <td>-</td>
-            </tr>
-            <tr>
-              <td>Decreto nº 6.040/2007</td>
-              <td>-</td>
-            </tr>
-          </tbody>
-        </table>
-      </div> 
-    </div>
-  </section>
-
-<!-- 25. POLÍTICAS PÚBLICAS - PROTOCOLO -->
-<section id="politicas-protocolo-consulta">
-
-  <h2>Protocolo de Consulta — Lagoa dos Patos/RS</h2>
-  <hr class="rule">
-  <div class="content">
-    <ul>
-      <li>Instrumento político-jurídico elaborado pelas próprias comunidades para regulamentar consultas do Estado e agentes privados sobre seus territórios.</li>
-      <li>Materializa o direito à consulta prévia, livre, informada e consentida — Convenção nº 169 da OIT e Decreto nº 6.040/2007.</li>
-    </ul>
-    
-  
-    <hr class="rule">
-    <h3>Contribuição do REAT CARTO</h3>
-    <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:14px; margin-top:16px;">
-      <div class="stat"><span class="num">14</span><span class="lbl">municípios</span></div>
-      <div class="stat"><span class="num">44</span><span class="lbl">comunidades mapeadas</span></div>
-      <div class="stat"><span class="num">531</span><span class="lbl">participantes (315 H / 216 M)</span></div>
-    </div>
-      <div style="display:grid; grid-template-columns:1fr; gap:26px;">
-      <div class="stat">
-        <h3>Construído entre 2023–2025, com apoio do MPP, Fóruns da Pesca Artesanal e da FURG</h3>
-        </div>
-    </div>
-  </div>
-</section>
-
-<!-- 26. REAT CARTO E O PROTOCOLO 
-<section id="reatcarto-protocolo-consulta" class="dark-slide" data-background-color="#10303C" data-transition="fade">
-
-  <h2>Da Demanda Política ao Mapa Jurídico</h2>
-  <hr class="rule">
-  <div class="content" style="justify-content:center;">
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:26px; align-items:center;">
-      <div class="card terra">
-        <h3><i class="fa-solid fa-people-roof"></i> Território pesqueiro único</h3>
-        <p>Mais de <strong>7.000 profissionais</strong> em <strong>73 comunidades</strong>, ao longo de <strong>18 municípios</strong>, reconhecem a Lagoa dos Patos como território pesqueiro indissociável de sua existência.</p>
-      </div>
-      <div class="card">
-        <h3><i class="fa-solid fa-gavel"></i> Escudo jurídico</h3>
-        <p>O REAT CARTO atuou como plataforma central de consolidação dos dados geográficos, gerando mapas que cumprem os padrões exigidos pelo <strong>Ministério Público</strong> — convertendo cartografia social em instrumento legal.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-27. PAE PESQUEIRO -->
-<section id="pae-pesqueiro">
-
-  <h2>PAE Pesqueiro</h2>
-  <hr class="rule">
-  <div class="content">
-    <ul>
-      <li>Projeto de Assentamento Agroextrativista — modalidade da reforma agrária para populações que vivem do extrativismo e da pesca artesanal de baixo impacto.</li>
-      <li>Aplica-se a áreas de domínio da União (ilhas, terrenos de marinha, várzeas), regulamentado pela <strong>Portaria nº 1.498/2025</strong>.</li>
-      <li>Exige mapas, croquis, pareceres técnicos e recadastramento das famílias, com manifestação formal de interesse coletivo.</li>
-      <li>Articulação entre MPA, INCRA, CNPCT, Fórum Nacional da Pesca Artesanal e MPP.</li>
-    </ul>
-    <hr class="rule">
-    <h3>Potencialidades do REAT CARTO para o PAE Pesqueiro</h3>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:26px;">
-      <div class="stat">
-      
-        <p>Colaboradores da própria comunidade mapeiam poligonais e inserem metadados sobre práticas extrativistas.</p>
-      </div>
-      <div class="stat">
-        
-        <p>Recadastramento contínuo de famílias e reconfiguração de limites, acelerando a segurança jurídica e o acesso a créditos do PNRA.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 28. POTENCIALIDADES REAT CARTO PAE 
-<section id="reatcarto-pae">
-
-  <h2>Potencialidades do REAT CARTO para o PAE Pesqueiro</h2>
-  <hr class="rule">
-  <div class="content">
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:26px;">
-      <div class="card verde">
-        <h3><i class="fa-solid fa-gauge-high"></i> Superação de gargalo técnico</h3>
-        <p>Colaboradores da própria comunidade mapeiam poligonais e inserem metadados sobre práticas extrativistas.</p>
-      </div>
-      <div class="card">
-        <h3><i class="fa-solid fa-rotate"></i> Natureza dinâmica</h3>
-        <p>Recadastramento contínuo de famílias e reconfiguração de limites, acelerando a segurança jurídica e o acesso a créditos do PNRA.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
- . DUVISÃO -  -->
-<section id="divider-teoria" class="section-divider" data-background-color="#10303C" data-transition="zoom">
-  <div>
-    <h1>Território e Territorialidade (Pesqueira)</h1>
-  </div>
-</section>
-
- <section>
-    <h2 style="color: #1F4E5F">Referencial Teórico</h2>
-    <hr class="rule">
-    <div class="content">
-      <div class="stat">
-        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; text-align: center;">
-  <thead style="background-color: #f2f2f2;">
-    <tr>
-      <th>Território</th>
-      <th>Territorialidade</th>
-      <th>Território e Territorialidade Pesqueira</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Raffestin (1986, 1993)</td>
-      <td>Raffestin (1993)</td>
-      <td>De Paula (2022)</td>
-    </tr>
-    <tr>
-      <td>Haesbaert (2003)</td>
-      <td>Haesbaert (2003)</td>
-      <td>De Paula (2023)</td>
-    </tr>
-  </tbody>
-</table>
-
-      </div>
-    </div>
-  
-  </section>
-
-
-<!-- 29. TERRITÓRIO RAFFESTIN 1 -->
-<section id="territorio-raffestin-1" class="dark-slide" data-background-color="#10303C">
-
- 
-  <div class="content"style="display:grid; grid-template-columns:0.9fr 1fr;" >
-    <div>
-      <h2>Território</h2>
-      <hr class="rule"> 
-      <div class="card verde">
-        <h3>Território (Raffestin)</h3>
-        <ul style="list-style-type:none;">
-          <li style="font-size:12.5pt;">
-            O território é o espaço no qual se projetou trabalho
-          </li>
-          <li style="font-size:12.5pt;">
-            A produção territorial é formada por: malhas redes e nós. O sistema de malhas, nós e redes asseguram o controle sobre aquilo que se pode distribuir, alocar, e/ou possuir
-          </li>
-          <li style="font-size:12.5pt;">
-            A representação do território tornou-se um instrumento de poder.
-          </li>
-        </ul>
-      </div>
-      <div class="card verde" style="background-color:#F5F1E8;">
-        <h3 style="color: #1F4E5F">Território (Haesbaert)</h3>
-        <ul style="list-style-type:none;">
-          <li style="font-size:12.5pt; color:#23303A ;">
-            O território integra dimensões materiais e imateriais em um processo contínuo de produção social
-          </li>
-          <li style="font-size:12.5pt; color:#23303A;">
-             O território deve ser apreendido simultaneamente como um recurso de poder e um abrigo de identificação, rompendo com visões que isolam a política da cultura
-          </li>
-          <li style="font-size:12.5pt; color: #10303C;" >
-            "Mito da desterritorialização": territórios não desaparecem, se reconfiguram
-          </li>
-        </ul>
-      </div>
-    </div>
-    <div>
-
-    <div style="margin-left:5%;">
-     <h2>Territorialidade</h2>
-      <hr class="rule"> 
-      
-        <div class="card">
-          <p >Paradigma que demonstra a complexidade da relação do homem com o meio  — relações concretas e abstratas (fala, culinária, religião).</p>
-     
-          <p>
-            Dinâmica: movimento de troca e comunicação que exige energia (trabalho manual) e informação (trabalho intelectual).
-          </p>
-  
-          <p>
-            territorialidade é a dimensão vivida dessa apropriação
-          </p>
-     
-          <p>
-            A territorialidade o pera em duas faces: <strong>domínio</strong> (controle concreto) e <strong>apropriação</strong> (identidade e vínculo afetivo)
-          </p>
-        </div>
-      </div>
-    </div>
-
-   
- 
-
-  
-  
-  </div>
-</section>
-
-
-
-
 
 
 <!-- 30. TERRITÓRIO RAFFESTIN 2: MALHAS NÓS REDES -->
@@ -1444,7 +934,7 @@ html, body {
           <p>As malhas acolhem elementos que revelam a organização territorial.</p>
         </div>
 
-        <svg class="diagram-arrows" viewBox="0 0 1140 580" width="100%" height="100%">
+        <svg class="diagram-arrows" viewBox="0 0 650 530" width="100%" height="100%">
           <defs>
             <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto">
               <path d="M0,0 L6,3 L0,6 Z" fill="#fff"></path>
@@ -1452,18 +942,18 @@ html, body {
           </defs>
 
           <!-- 1. Nós -> aponta para as casinhas -->
-          <path d="M 100,-155 C 0,0 280,-50 300,110"
+          <path d="M 182,77 C 236,99 241,134 245,183"
                 stroke="#fff" stroke-width="4" fill="none"
                 marker-end="url(#arrowhead)"></path>
 
           <!-- 2. Redes -> aponta para os canais no meio da ilha 
           <path d="M 800,0 C 400,118 328,190 272,0"-->
-          <path d="M 800,-30 C 850,-30 700,-30 545,130"
+          <path d="M 465,85 C 414,104 382,135 345,207"
                 stroke="#fff" stroke-width="4" fill="none"
                 marker-end="url(#arrowhead)"></path>
 
           <!-- 3. Malhas -> aponta para a borda pontilhada externa -->
-          <path d="M 1350,1350 C 0,0 875,875 550,350"
+          <path d="M 370,392 C 365,366 350,345 340,326"
                 stroke="#fff" stroke-width="4" fill="none"
                 marker-end="url(#arrowhead)"></path>
         </svg>
@@ -1485,198 +975,97 @@ html, body {
   </div>
 </section>
 
-<!-- 31. TERRITÓRIO HAESBAERT 
-<section id="territorio-haesbaert">
-  <h2>Território em Haesbaert</h2>
-  <hr class="rule">
-  <div class="content">
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:26px;">
-      <ul>
-        <li>Articulação indissociável entre o domínio <strong>político-disciplinar</strong> e a apropriação <strong>simbólico-cultural</strong> (Haesbaert, 2003).</li>
-        <li>Três vertentes: jurídico-política, cultural/idealista e econômica.</li>
-        <li>Crítica ao "mito da desterritorialização": territórios não desaparecem, se reconfiguram — de territórios-zona a territórios-rede.</li>
-      </ul>
-      <div class="card">
-        <h3><i class="fa-solid fa-arrows-spin"></i> ESCREVA ALGO</h3>
-        <p>----- ESCREVA ALGO------</p>
-      </div>
-    </div>
+
+<section id="divider-politicas" class="section-divider" data-background-color="#10303C" data-rain="true" data-transition="zoom">
+  <div>
+    <h1>POLÍTICAS PÚBLICAS</h1>
+
   </div>
 </section>
- 32. TERRITORIALIDADE 
-<section id="territorialidade">
-  <h2>Territorialidade</h2>
+<section id="politicas-protocolo-consulta" data-rain="true">
+
+  <h2>Protocolo de Consulta — Lagoa dos Patos/RS</h2>
   <hr class="rule">
   <div class="content">
-    <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:16px;">
-      <div class="card">
-        <p style="font-size:12.5pt;">Paradigma que demonstra a complexidade da relação do homem com o meio — relações concretas e abstratas (fala, culinária, religião).</p>
-      </div>
-      <div class="card">
-        <p style="font-size:12.5pt;" >Dinâmica: movimento de troca e comunicação que exige energia (trabalho manual) e informação (trabalho intelectual).</p>
-      </div>
-      <div class="card">
-        <p style="font-size:12.5pt;">Opera em duas faces: <strong>domínio</strong> (controle concreto) e <strong>apropriação</strong> (identidade e vínculo afetivo)</p>
-      </div>
-    </div>
-
-    
-  </div>
-</section>
-
-33. TERRITÓRIO E TERRITORIALIDADE PESQUEIRA -->
-<section id="territorio-territorialidade-pesqueira" data-transition="fade">
-  <h2>Território e Territorialidade Pesqueira</h2>
-  <hr class="rule">
-  <div class="content">
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:26px;">
-      <blockquote>
-
-        <h3>Territorialidade pesqueira</h3>
-        <p style="font-size:13pt;">Práticas e fazer cotidiano pelos quais pescadores se apropriam de espaços — manifesta-se nos <strong>nós</strong> (pesqueiros, moradia, lazer, religião) e nas <strong>redes</strong> (caminhos fluviais, varadouros, trilhas).</p>
-
-      </blockquote>
-      
-      <blockquote>
-      
-        <h3>Território pesqueiro</h3>
-        <p style="font-size:13pt;">A <strong>malha</strong> resultante da integração de nós e redes — engloba toda a espacialidade necessária à reprodução social, cultural e econômica do grupo.</p>
-   
-      </blockquote>
-      
-    </div>
-    <ul class="stat" style="margin-top:14px;">
-      <li style="text-align: center; list-style-type: none;">Saber = poder <strong>simétrico e compartilhado</strong> entre os membros da comunidade (não hierárquico).</li>
-      <li style="text-align:center; list-style-type: none;">Territorialidades sobrepostas entre comunidades geram <strong>multiterritorialidades</strong> geralmente sem conflito, mediadas pela comunicação.</li>
+    <ul>
+      <li>Instrumento político-jurídico elaborado pelas próprias comunidades para regulamentar consultas do Estado e agentes privados sobre seus territórios.</li>
+      <li>Materializa o direito à consulta prévia, livre, informada e consentida — Convenção nº 169 da OIT e Decreto nº 6.040/2007.</li>
     </ul>
+
+
+    <hr class="rule">
+    <h3>Contribuição do REAT CARTO</h3>
+    <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:14px; margin-top:16px;">
+      <div class="stat"><span class="num">14</span><span class="lbl">municípios</span></div>
+      <div class="stat"><span class="num">44</span><span class="lbl">comunidades mapeadas</span></div>
+      <div class="stat"><span class="num">531</span><span class="lbl">participantes (315 H / 216 M)</span></div>
+    </div>
+      <div style="display:grid; grid-template-columns:1fr; gap:26px;">
+      <div class="stat">
+        <h3>Construído entre 2023–2025, com apoio do MPP, Fóruns da Pesca Artesanal e da FURG</h3>
+        </div>
+    </div>
   </div>
 </section>
 
-<!-- 34. TERRITÓRIO DE LUTA -->
-<section id="territorio-de-luta" class="dark-slide" data-background-color="#10303C">
-  <h2>Território de Luta</h2>
-  <hr class="rule">
-  
-  <!-- 1. Adicionado position: relative para segurar o SVG overlay -->
-  <div class="content" style="display:grid; grid-template-columns: 1fr 1fr; gap: 26px; position: relative;">
 
-    <!-- Coluna Esquerda -->
-    <div style="z-index: 1;">
-      <div class="card verde">
-        <h3><i class="fa-solid fa-leaf"></i> Ecogênese territorial</h3>
-        <p style="font-size:13pt;">Estágio inicial: território fluido, guiado pelos ciclos da natureza, sem necessidade de limites formais — o "saber ambiental" orienta o uso comum.</p>
-      </div>
-      <br>
-      <div class="card verde">
-        <h3></h3>
-        <p style="font-size:13pt;">O avanço da modernização, de impactos ambientais, da especulação imobiliária além da sobreposição do território tradicional com o território das instituições - Estado - acabam gerando conflitos com as comunidades e povos tradicionais</p>
-      </div>
-    </div>
 
-    <!-- Coluna Direita -->
-    <div style="z-index: 1;">
-      <div class="card terra">
-        <h3><i class="fa-solid fa-fist-raised"></i> Território de luta</h3>
-        <p style="font-size:13pt;">Diante de impactos, disputas e conflitos com agentes externos, a delimitação se torna ferramenta política e estratégica de resistência e (r)existência.</p>
-        <p style="font-size:13pt;">
-          A comunicação intra e inter comunitária gera o território de luta, contra impactos, disputas e conflitos frente a empreendimentos ou agentes dominantes — atores externos
-        </p>
-      </div>
-    </div>
+<section id="reatcarto-protocolo-consulta" class="dark-slide" data-background-color="#10303C" data-rain="true" data-transition="fade">
 
-    <!-- 2. SVG movido para fora das colunas, cobrindo todo o .content -->
-    <svg class="diagram-arrows" viewBox="0 0 1000 600" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;">
-      <defs>
-            <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto">
-              <path d="M0,0 L6,3 L0,6 Z" fill="#000"></path>
-            </marker>
-          </defs>
-
-      <!-- 3. Novo Path (Caminho): 
-           M 480,450 (Inicia no centro-direito do card verde de baixo)
-           C 600,450 400,150 520,150 (Faz uma curva suave até o card de cima na direita) -->
-      <path d="M 470,350 C 450,350 800,400 850,300"
-            stroke="#fff" stroke-width="3" fill="none" 
-            marker-end="url(#arrowhead)"></path>
-    </svg>
-
-  </div>
-</section>
-
-<!-- 10. CRONOGRAMA -->
-<section id="cronograma" data-background-color="#10303C" class="dark-slide">
-  <h2>Cronograma</h2>
+  <h2>REAT CARTO e o protocolo de consulta </h2>
   <hr class="rule">
   <div class="content" style="justify-content:center;">
-    <div class="stat">
-      <div class="table-scroll">
-      <table style="border: 1px solid; " class="cronograma">
-        <thead>
-          <tr>
-            <th></th>
-            <th colspan="10">2025</th>
-            <th colspan="12">2026</th>
-            <th colspan="2">2027</th>
-          </tr>
-          <tr>
-            <th></th>
-            <th>M</th><th>A</th><th>M</th><th>J</th><th>J</th><th>A</th><th>S</th><th>O</th><th>N</th><th>D</th>
-            <th>J</th><th>F</th><th>M</th><th>A</th><th>M</th><th>J</th><th>J</th><th>A</th><th>S</th><th>O</th><th>N</th><th>D</th>
-            <th>J</th><th>F</th>
-          </tr>
-        </thead>
-        <tbody >
-          <tr >
-            <th>1</th>
-            <td >X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td>
-            <td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td>
-            <td></td><td></td>
-          </tr>
-          <tr>
-            <th>2</th>
-            <td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td>
-            <td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td><td>X</td>
-            <td></td><td></td>
-          </tr>
-          <tr>
-            <th>3</th>
-            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>X</td><td></td><td></td><td></td><td></td>
-            <td></td><td></td>
-          </tr>
-          <tr>
-            <th>4</th>
-            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>X</td><td>X</td><td>X</td><td>X</td>
-            <td></td><td></td>
-          </tr>
-          <tr>
-            <th>5</th>
-            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>X</td><td>X</td><td>X</td><td>X</td>
-            <td>X</td><td></td>
-          </tr>
-          <tr>
-            <th>6</th>
-            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-            <td></td><td></td><td></td><td></td><td></td><td></td><td>X</td><td></td><td></td><td></td><td></td><td></td>
-            <td></td><td></td>
-          </tr>
-          <tr>
-            <th>7</th>
-            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-            <td></td><td>X</td>
-          </tr>
-        </tbody>
-      </table>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:26px; align-items:center;">
+      <div class="card terra">
+        <h3><i class="fa-solid fa-people-roof"></i> Território pesqueiro único</h3>
+        <p>Mais de <strong>7.000 profissionais</strong> em <strong>73 comunidades</strong>, ao longo de <strong>18 municípios</strong>, reconhecem a Lagoa dos Patos como território pesqueiro indissociável de sua existência.</p>
       </div>
-      
+      <div class="card">
+        <h3><i class="fa-solid fa-gavel"></i> Escudo jurídico</h3>
+        <p>O REAT CARTO atuou como plataforma central de consolidação dos dados geográficos, gerando mapas que cumprem os padrões exigidos pelo <strong>Ministério Público</strong> — convertendo cartografia social em instrumento legal.</p>
+      </div>
     </div>
-      <div class="stat" style="background-color:#F5F1E8;">    
-        <p style="font-size:11pt; text-align: center; color:#10303C;">Legenda:</p>
-        <p style="font-size:11pt; text-align: center; color:#10303C;"> (1)Revisão Teórica; (2) Escrita da dissertação; (3) Oficinas; (4) Entrevistas; (5) Análise documental; (6) Qualificação;<br> (7) Defesa Final</p>
+  </div>
+</section>
+
+<section id="ilha-dos-marinheiros" data-transition="fade">
+  <h2>Primeira experiência na Ilha dos Marinheiros</h2>
+  <hr class="rule">
+  <div class="field-layout">
+    <div>
+      <div class="field-photos">
+        <figure><img src="assets/ilha-oficina-2.png" alt="Estudantes e participantes reunidos em torno de computadores durante a oficina de mapeamento"><figcaption><strong>Grupo 1</strong><br>Bandeirinhas e Porto Rei</figcaption></figure>
+        <figure><img src="assets/ilha-oficina-1.png" alt="Participantes da oficina discutem o território diante de um mapa projetado"><figcaption><strong>Grupo 2</strong><br>Marambaia, Coreia e Fundos da Ilha</figcaption></figure>
       </div>
+      <p class="field-takeaway">Diferentes gerações mapearam juntas os territórios de terra e de água.</p>
+    </div>
+    <div class="field-story">
+      <h3>O primeiro uso em oficina</h3>
+      <p>O projeto de extensão reuniu pescadores, pescadoras e estudantes para usar as primeiras versões do REAT CARTO.</p>
+      <h3>A escola no mapeamento</h3>
+      <p>Alunos do 9º ano da EMEF Sylvia Centeno Xavier participaram com professoras e a diretora, que solicitou acesso para atividades pedagógicas.</p>
+      <h3>Limites da experiência inicial</h3>
+      <p>O sistema já funcionava, mas ainda apresentava limitações técnicas. A instabilidade da internet também dificultou o uso na oficina.</p>
+    </div>
+  </div>
+
+</section>
+
+<section id="mapas-marinheiros-terra-agua">
+  <h2>Territórios de terra e de água</h2>
+  <hr class="rule">
+  <div class="map-pair">
+    <figure class="map-figure"><div class="map-laptop"><div class="laptop-screen"><img src="assets/gt05-imagem-3.png" alt="Mapa do território de terra da comunidade pesqueira da Ilha dos Marinheiros"></div></div><figcaption><strong>Território de terra</strong><br>Ilha dos Marinheiros · legenda da Figura 3</figcaption></figure>
+    <figure class="map-figure"><div class="map-laptop"><div class="laptop-screen"><img src="assets/gt05-imagem-4.png" alt="Mapa do território de água da comunidade pesqueira da Ilha dos Marinheiros"></div></div><figcaption><strong>Território de água</strong><br>Ilha dos Marinheiros · legenda da Figura 4</figcaption></figure>
+  </div>
+</section>
+
+<section id="mapa-ilha-dos-marinheiros">
+  <h2>Cartografia comunitária: terra e água</h2>
+  <hr class="rule">
+  <div class="map-review">
+    <div class="map-laptop"><div class="laptop-screen"><img src="assets/gt05-imagem-5.png" alt="Mapa que reúne os territórios de água e de terra, conforme legenda da Figura 5"></div></div>
+    <div class="map-note"><p><strong>Legenda da Figura 5</strong><br>“Território água e terra da comunidade pesqueira da Ilha dos Marinheiros.”</p><p>O parágrafo anterior do documento atribui à oficina o Mapa 3 da Ilha da Torotama. Como a relação entre esse parágrafo e a Figura 5 não fica clara, vale conferir a autoria e a localidade antes de apresentar o mapa como resultado daquela oficina.</p></div>
   </div>
 </section>
 
@@ -1689,62 +1078,57 @@ html, body {
   </div>
 </section>
 
-<!-- 36. REFERÊNCIAS 1 -->
+<!-- Referências transcritas de GT05_ComObservações.md. -->
 <section id="referencias-1">
-  <h2>Referências (1/3)</h2>
+  <h2>Referências (1/4)</h2>
   <hr class="rule">
-  <div class="content">
-    <ul style="font-size:11pt; line-height:1.34;">
-      <li>ACSELRAD, Henri. <em>Cartografias sociais e território</em>. Rio de Janeiro: IPPUR/UFRJ, 2008.</li>
-      <li>ACSELRAD, Henri. (Org.). <em>Cartografia social, terra e território</em>. Rio de Janeiro: IPPUR/UFRJ, 2013.</li>
-      <li>ACSELRAD, Henri; COLI, Luis Régis. Disputas territoriais e disputas cartográficas. In: ACSELRAD, H. (Org.). <em>Cartografias sociais e território</em>. Rio de Janeiro: IPPUR/UFRJ, 2008.</li>
-      <li>ALBUQUERQUE, Carlos Eduardo. <em>REATCARTO: WebSIG para cartografia social em comunidades pesqueiras</em>. TCC (Geografia Licenciatura) — FURG, Rio Grande, 2025.</li>
-      <li>ALMEIDA, Alfredo Wagner Berno de. Terras Tradicionalmente Ocupadas. <em>Revista Brasileira de Estudos Urbanos e Regionais</em>, v. 6, n. 1, 2004.</li>
-      <li>BARDIN, Laurence. <em>Análise de conteúdo</em>. São Paulo: Edições 70, 2016.</li>
-      <li>BRAVO, J. V. M.; SLUTER, C. R. O Mapeamento Colaborativo. <em>Revista Brasileira de Geografia Física</em>, v. 11, n. 5, 2018.</li>
-    </ul>
-  </div>
+  <ul class="bibliography">
+      <li>ACSELRAD, Henri. Cartografias sociais e território. Rio de Janeiro: IPPUR/UFRJ, 2008.</li>
+      <li>ACSELRAD, Henri. (Org.). Cartografia social, terra e território. Rio de Janeiro: IPPUR/UFRJ, 2013.</li>
+      <li>ALBUQUERQUE, Carlos Eduardo. REATCARTO: WebSIG para cartografia social em comunidades pesqueiras. 2024. Trabalho de Conclusão de Curso (Graduação em Geografia Licenciatura) – Universidade Federal do Rio Grande, Rio Grande, 2025</li>
+      <li>ALMEIDA, Alfredo Wagner Berno de. Terras Tradicionalmente Ocupadas. Revista Brasileira de Estudos Urbanos e Regionais, v. 6, n. 1, maio 2004.</li>
+      <li>ANDRADE, André Medeiros de; POELKING, Everton Luís; SCHAEFER, Carlos Ernesto G. R.; FERNANDES FILHO, Elpidio Inácio. Potencial do WebSIG para divulgação de dados espaciais da Península Potter, Antártica Marítima. Geoambiente On-line, n. 21, 2013. DOI: 10.5216/revgeoamb.v0i21.27912.</li>
+  </ul>
 </section>
 
-<!-- 37. REFERÊNCIAS 2 -->
 <section id="referencias-2">
-  <h2>Referências (2/3)</h2>
+  <h2>Referências (2/4)</h2>
   <hr class="rule">
-  <div class="content">
-    <ul style="font-size:11pt; line-height:1.34;">
-      <li>DE PAULA, Cristiano Quaresma. <em>Geografias da pesca artesanal brasileira</em>. Porto Alegre: Compasso Lugar-Cultura, 2023.</li>
-      <li>DE PAULA, Cristiano Quaresma; SILVA, Catia Antonia da. Cartografia (da Ação) Social como meio de luta por território. In: REGO, N.; KOZEL, S. (orgs.). <em>Narrativas, Geografias e Cartografias</em>. v. I. Porto Alegre: Compasso/IGEO, 2020.</li>
-      <li>GOODCHILD, Michael F. Citizens as sensors. <em>GeoJournal</em>, v. 69, n. 4, 2007.</li>
-      <li>HAESBAERT, Rogério. <em>O mito da desterritorialização</em>. Rio de Janeiro: Bertrand Brasil, 2003.</li>
-      <li>MACHADO, A. A.; CAMBOIM, S. P. Mapeamento colaborativo como fonte de dados para o planejamento urbano. <em>Urbe. Revista Brasileira de Gestão Urbana</em>, v. 11, 2019.</li>
-      <li>PAGANOTTO, V. D.; SIMON, A. L. H. A cartografia colaborativa como instrumento para identificação de quedas d'água em Pelotas e Arroio do Padre (RS). ENANPEGE, 14., 2021.</li>
-      <li>RAFFESTIN, Claude. <em>Por uma geografia do poder</em>. Trad. Maria Cecília França. São Paulo: Ática, 1993.</li>
-    </ul>
-  </div>
+  <ul class="bibliography">
+      <li>ARAÚJO, Franciele Eunice; ANJOS, Rafael Silva; ROCHA-FILHO, Gilson Brandão. Mapeamento participativo: conceitos, métodos e aplicações. Boletim de Geografia, Maringá, v. 35, n. 2, p. 128-140, 2017. DOI: 10.4025/bolgeogr.v35i2.31673.</li>
+      <li>BRAVO, João Vitor Meza; SLUTER, Claudia Robbi. O mapeamento colaborativo: seu surgimento, suas características e o funcionamento das plataformas. Revista Brasileira de Geografia Física, v. 11, n. 5, p. 1902-1916, 2018. DOI: 10.26848/rbgf.v11.5.p1902-1916.</li>
+      <li>COMUNIDADES TRADICIONAIS PESQUEIRAS DA LAGOA DOS PATOS. Protocolo de Consulta das Comunidades Tradicionais Pesqueiras da Lagoa dos Patos/RS. Rio Grande: FURG; MPA, 2025.</li>
+      <li>DE PAULA, Cristiano Quaresma. Geografias da pesca artesanal brasileira. 1. ed. Porto Alegre: Compasso Lugar-Cultura, 2023.</li>
+  </ul>
 </section>
 
-<!-- 38. REFERÊNCIAS 3 -->
 <section id="referencias-3">
-  <h2>Referências (3/3)</h2>
+  <h2>Referências (3/4)</h2>
   <hr class="rule">
-  <div class="content">
-    <ul style="font-size:11pt; line-height:1.34;">
-      <li>RIBEIRO, Ana Clara Torres. Cartografia da Ação Social: região latino-americana e novo desenvolvimento urbano. CLACSO, 2009.</li>
-      <li>RIBEIRO, L. H. L.; SILVA, C. A. Cartografia da ação social e luta pelo uso do território no Brasil. <em>Geousp</em>, v. 26, n. 2, 2022.</li>
-      <li>ROCHA, Otávio G. <em>Narrativas cartográficas contemporâneas nos enredos da colonialidade do poder</em>. 2015.</li>
-      <li>SILVA, Catia Antonia da; SCHIPPER, Ivy. Cartografia da ação social: reflexão e criatividade no contato da escola com a cidade. <em>Revista Tamoios</em>, v. 8, n. 1, 2012.</li>
-      <li>TAVARES, G. U. et al. Mapeamento colaborativo: uma interação entre cartografia e desenvolvimento sustentável. <em>ACTA Geográfica</em>, Boa Vista, 2016.</li>
-      <li>THIOLLENT, Michel. <em>Metodologia da pesquisa-ação</em>. 18. ed. São Paulo: Cortez, 2011.</li>
-      <li>COMUNIDADES TRADICIONAIS PESQUEIRAS DA LAGOA DOS PATOS. <em>Protocolo de Consulta das Comunidades Tradicionais Pesqueiras da Lagoa dos Patos/RS</em>. Rio Grande: FURG; MPA, 2025.</li>
-      <li>BRASIL. INCRA. <em>Assentamento agroextrativista pesqueiro Território Doquinhas é criado em Pelotas (RS)</em>. Brasília: Incra, 2026.</li>
-    </ul>
-  </div>
+  <ul class="bibliography">
+      <li>DE PAULA, Cristiano Quaresma; SILVA, Catia Antonia da. Cartografia (da Ação) Social como meio de luta por território. In: REGO, Nelson; KOZEL, Salete (orgs.). Narrativas, Geografias e Cartografias: para viver é preciso espaço e tempo. Volume I. Porto Alegre: Editora Compasso Lugar-Cultura e Editora IGEO, 2020. p. 95-125.</li>
+      <li>GALLIS, Rodrigo Bezerra de Araújo; BARBOSA, Ricardo Luis; CUNHA, Samuel Rodrigues; HIRAGA, Alan Kazuo; FARIA, Marcelo Araújo. WebSIG alimentado com dados coletados com sistema de mapeamento móvel terrestre. Revista Brasileira de Cartografia, v. 70, n. 5, p. 1644-1663, 2018. DOI: 10.14393/rbcv70n5-44562.</li>
+      <li>HAESBAERT, Rogério. O mito da desterritorialização: do “fim dos territórios” à multiterritorialidade. Rio de Janeiro: Bertrand Brasil, 2004.</li>
+      <li>RAFFESTIN, Claude. Por uma geografia do poder. Tradução de Maria Cecília França. São Paulo: Ática, 1993.</li>
+  </ul>
 </section>
 
-<section id="divider-referencias" class="section-divider" data-background-color="#10303C" data-transition="zoom">
+<section id="referencias-4">
+  <h2>Referências (4/4)</h2>
+  <hr class="rule">
+  <ul class="bibliography">
+      <li>RIBEIRO, Luis Henrique Leandro; SILVA, Catia Antonia da. Cartografia da ação social e luta pelo uso do território no Brasil: contribuições à reflexão do método. GEOUSP Espaço e Tempo, São Paulo, v. 26, n. 2, p. 187-203, 2022. DOI: 10.11606/issn.2179-0892.geousp.2022.187100.</li>
+      <li>SILVA, Catia Antonia da; SCHIPPER, Ivy. Cartografia da ação social: Reflexão e criatividade no contato da escola com a cidade. Revista Tamoios, São Gonçalo, v. 8, n. 1, 2012.</li>
+      <li>SILVA, Christian Nunes da et al. A cartografia social e o mapeamento participativo na análise do espaço geográfico. Belém: GeoDigital, 2021.</li>
+      <li>TAVARES, Gislleidy Uchôa; EVANGELISTA, Ana Nery Amaro; SANTOS, Jader de Oliveira; GORAYEB, Adryane. Mapeamento colaborativo: uma interação entre cartografia e desenvolvimento sustentável no Campus do Pici – Universidade Federal do Ceará. ACTA Geográfica, Boa Vista, edição especial, p. 44-56, 2016. DOI: 10.18227/2177-4307.acta.v10iee.3748.</li>
+  </ul>
+</section>
+
+<section id="encerramento" class="section-divider" data-background-color="#10303C" data-transition="zoom">
   <div>
-    <h1>OBRIGADO!!</h1>
+    <h1>Obrigado!</h1>
     <hr class="rule">
+    <p>Territórios de luta e cartografia social</p>
   </div>
 </section>
 
@@ -1767,65 +1151,6 @@ html, body {
     height: 720,
     margin: 0.04,
   });
-
-  // =========================================
-  // LÓGICA DE MOVIMENTO DO BARCO E ONDAS
-  // =========================================
-  let ondasContainer = document.getElementById('ondas-container');
-  let barcoWrapper = document.getElementById('barco-wrapper');
-  let barco = document.getElementById('barco-animado');
-  let progressoHorizontal = 0;
-  let startTime = Date.now();
-
-  // Largura lógica do slide no reveal.js (deve bater com Reveal.initialize width: 1280)
-  const SLIDE_WIDTH = 1280;
-
-  function moverBarco() {
-    // Pega o progresso total da apresentação (de 0.0 a 1.0)
-    let progresso = Reveal.getProgress();
-    if (barcoWrapper) {
-      // Move o barco até 130% da largura do slide (atravessa e some pela lateral)
-      progressoHorizontal = progresso * 130;
-      const horizontalOffset = (progressoHorizontal / 100) * SLIDE_WIDTH;
-      // Só o deslocamento horizontal fica no wrapper (ele tem transition suave ao trocar de slide)
-      barcoWrapper.style.transform = `translateX(${horizontalOffset}px)`;
-    }
-  }
-
-  function animate() {
-    const elapsed = Date.now() - startTime;
-
-    // Animação das ondas (scroll infinito)
-    if (ondasContainer) {
-      const waveScroll = (elapsed * 0.01) % 100; // velocidade das ondas
-      ondasContainer.style.transform = `translateX(-${(waveScroll / 70) * SLIDE_WIDTH}px)`;
-    }
-
-    // Animação do barco: balanço contínuo (sobe/desce + inclina), sem transition CSS
-    // pra não travar contra a atualização por frame.
-    if (barco) {
-      const waveAmplitude = 14;      // px de deslocamento vertical
-      const waveFrequency = 0.0016;  // rad/ms — período de ~4s
-      const rockAmplitude = 4.5;     // graus de inclinação (rolagem tipo balanço de barco)
-      const rockFrequency = 0.0012;  // levemente fora de fase da vertical, fica mais orgânico
-      const bowAmplitude = 1.2;      // leve sobe-desce extra da proa, dá "peso" ao movimento
-
-      const verticalOffset = Math.sin(elapsed * waveFrequency) * waveAmplitude
-                            + Math.sin(elapsed * waveFrequency * 2.3) * bowAmplitude;
-      const rotation = Math.sin(elapsed * rockFrequency + 0.6) * rockAmplitude;
-
-      barco.style.transform = `translateY(${verticalOffset}px) rotate(${rotation}deg)`;
-    }
-
-    requestAnimationFrame(animate);
-  }
-
-  // Executa o movimento quando a apresentação carrega e toda vez que um slide muda
-  Reveal.on('ready', () => {
-    moverBarco();
-    animate();
-  });
-  Reveal.on('slidechanged', moverBarco);
 
   // Efeito de zoom "lupa" que segue o mouse (estilo zoom de e-commerce)
   document.querySelectorAll('.zoom-lens-card').forEach(function (card) {
@@ -1850,5 +1175,6 @@ html, body {
   });
 
 </script>
+<script src="scene.js"></script>
 </body>
 </html>
